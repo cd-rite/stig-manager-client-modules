@@ -378,7 +378,8 @@ export function reviewsFromXccdf(
         'overrides',
         'target',
         'target-address',
-        'fact'
+        'fact',
+        'rule-result'
       ]
       return arrayElements.includes(name)
     }
