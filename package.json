@@ -7,7 +7,6 @@
   "scripts": {
     "test": "c8 --reporter=html --reporter=text mocha './test/**/*.test.js'"
   },
-  
   "exports": {
     "import": "./index.js",
     "require": "./index.cjs"

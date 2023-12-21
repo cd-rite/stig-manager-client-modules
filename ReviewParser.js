@@ -739,7 +739,7 @@ export function reviewsFromCklb(
       metadata: {}
     }
     if (td.role) {
-      obj.metadata.cklRole = td.ROLE
+      obj.metadata.cklRole = td.role
     }
     if (td.technology_area) {
       obj.metadata.cklTechArea = td.technology_area
