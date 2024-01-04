@@ -1,0 +1,25 @@
+{
+  "name": "stig-manager-client-modules",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "c8 --reporter=html --reporter=text mocha './test/**/*.test.js'",
+    "install": "npx rollup index.js --file index.cjs --format cjs"
+  },
+  "exports": {
+    "import": "./index.js",
+    "require": "./index.cjs"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "c8": "^8.0.1",
+    "chai": "^4.3.10",
+    "mocha": "^10.2.0",
+    "rollup": "^4.8.0"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.3.2"
+  }
+}

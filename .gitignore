@@ -1,0 +1,4 @@
+index.cjs
+coverage/
+node_modules/
+.vscode/*

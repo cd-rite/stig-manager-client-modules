@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- STIG Manager 1.3.13 -->
+<!-- Classification: NONE -->
+<Benchmark xmlns="http://checklists.nist.gov/xccdf/1.2" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:sm="http://github.com/nuwcdivnpt/stig-manager" id="xccdf_mil.disa.stig_benchmark_RHEL_9_TRUNCATED">
+  <status date="2023-09-13">accepted</status>
+  <title>Red Hat Enterprise Linux 9 TRUNCATED</title>
+  <description>This Security Technical Implementation Guide is published as a tool to improve the security of Department of Defense (DOD) information systems. The requirements are derived from the National Institute of Standards and Technology (NIST) 800-53 and related documents. Comments or proposed revisions to this document should be sent via email to the following address: disa.stig_spt@mail.mil.</description>
+  <version>V1R1</version>
+  <metadata>
+    <dc:creator>DISA</dc:creator>
+    <dc:publisher>STIG Manager OSS</dc:publisher>
+  </metadata>
+  <Group id="xccdf_mil.disa.stig_group_V-257777">
+    <title>SRG-OS-000480-GPOS-00227</title>
+    <Rule id="xccdf_mil.disa.stig_rule_SV-257777r925318_rule" weight="10.0" severity="high">
+      <title>RHEL 9 must be a vendor-supported release.</title>
+      <check>
+        <check-content>Verify that the version or RHEL 9 is vendor supported with the following command:
+
+$ cat /etc/redhat-release 
+
+Red Hat Enterprise Linux release 9.2 (Plow)
+
+If the installed version of RHEL 9 is not supported, this is a finding.</check-content>
+      </check>
+    </Rule>
+  </Group>
+  <Group id="xccdf_mil.disa.stig_group_V-257778">
+    <title>SRG-OS-000480-GPOS-00227</title>
+    <Rule id="xccdf_mil.disa.stig_rule_SV-257778r925321_rule" weight="10.0" severity="medium">
+      <title>RHEL 9 vendor packaged system security patches and updates must be installed and up to date.</title>
+      <check>
+        <check-content>Verify RHEL 9 security patches and updates are installed and up to date. Updates are required to be applied with a frequency determined by organizational policy.
+
+Obtain the list of available package security updates from Red Hat. The URL for updates is https://access.redhat.com/errata-search/. It is important to note that updates provided by Red Hat may not be present on the system if the underlying packages are not installed.
+
+Check that the available package security updates have been installed on the system with the following command:
+
+$ dnf history list | more
+
+    ID | Command line | Date and time | Action(s) | Altered    
+-------------------------------------------------------------------------------    
+   70 | install aide | 2023-03-05 10:58 | Install | 1    
+   69 | update -y | 2023-03-04 14:34 | Update | 18 EE    
+   68 | install vlc | 2023-02-21 17:12 | Install | 21   
+   67 | update -y | 2023-02-21 17:04 | Update | 7 EE 
+
+Typical update frequency may be overridden by Information Assurance Vulnerability Alert (IAVA) notifications from CYBERCOM.
+
+If the system is in noncompliance with the organizational patching policy, this is a finding.</check-content>
+      </check>
+    </Rule>
+  </Group>
+  <Group id="xccdf_mil.disa.stig_group_V-257779">
+    <title>SRG-OS-000023-GPOS-00006</title>
+    <Rule id="xccdf_mil.disa.stig_rule_SV-257779r925324_rule" weight="10.0" severity="medium">
+      <title>RHEL 9 must display the Standard Mandatory DOD Notice and Consent Banner before granting local or remote access to the system via a command line user logon.</title>
+      <check>
+        <check-content>Verify RHEL 9 displays the Standard Mandatory DOD Notice and Consent Banner before granting access to the operating system via a command line user logon.
+
+Check that a banner is displayed at the command line login screen with the following command:
+
+$ sudo cat /etc/issue
+
+If the banner is set correctly it will return the following text:
+
+&quot;You are accessing a U.S. Government (USG) Information System (IS) that is provided for USG-authorized use only.
+
+By using this IS (which includes any device attached to this IS), you consent to the following conditions:
+
+-The USG routinely intercepts and monitors communications on this IS for purposes including, but not limited to, penetration testing, COMSEC monitoring, network operations and defense, personnel misconduct (PM), law enforcement (LE), and counterintelligence (CI) investigations.
+
+-At any time, the USG may inspect and seize data stored on this IS.
+
+-Communications using, or data stored on, this IS are not private, are subject to routine monitoring, interception, and search, and may be disclosed or used for any USG-authorized purpose.
+
+-This IS includes security measures (e.g., authentication and access controls) to protect USG interests--not for your personal benefit or privacy.
+
+-Notwithstanding the above, using this IS does not constitute consent to PM, LE or CI investigative searching or monitoring of the content of privileged communications, or work product, related to personal representation or services by attorneys, psychotherapists, or clergy, and their assistants. Such communications and work product are private and confidential. See User Agreement for details.&quot;
+
+If the banner text does not match the Standard Mandatory DOD Notice and Consent Banner exactly, or the line is commented out, this is a finding.</check-content>
+      </check>
+    </Rule>
+  </Group>
+  <Group id="xccdf_mil.disa.stig_group_V-257780">
+    <title>SRG-OS-000191-GPOS-00080</title>
+    <Rule id="xccdf_mil.disa.stig_rule_SV-257780r925327_rule" weight="10.0" severity="medium">
+      <title>RHEL 9 must implement the Endpoint Security for Linux Threat Prevention tool.</title>
+      <check>
+        <check-content>Verify that RHEL 9 has implemented the Endpoint Security for Linux Threat Prevention tool.
+
+Check that the following package has been installed:
+
+$ sudo rpm -qa | grep -i mcafeetp
+
+If the &quot;mcafeetp&quot; package is not installed, this is a finding.
+
+Verify that the daemon is running:
+
+$ sudo ps -ef | grep -i mfetpd
+
+If the daemon is not running, this is a finding.</check-content>
+      </check>
+    </Rule>
+  </Group>
+  <Group id="xccdf_mil.disa.stig_group_V-257781">
+    <title>SRG-OS-000480-GPOS-00227</title>
+    <Rule id="xccdf_mil.disa.stig_rule_SV-257781r925330_rule" weight="10.0" severity="medium">
+      <title>The graphical display manager must not be the default target on RHEL 9 unless approved.</title>
+      <check>
+        <check-content>Verify that RHEL 9 is configured to boot to the command line:
+
+$ systemctl get-default
+
+multi-user.target
+
+If the system default target is not set to &quot;multi-user.target&quot; and the information system security officer (ISSO) lacks a documented requirement for a graphical user interface, this is a finding.</check-content>
+      </check>
+    </Rule>
+  </Group>
+  <Group id="xccdf_mil.disa.stig_group_V-257782">
+    <title>SRG-OS-000480-GPOS-00227</title>
+    <Rule id="xccdf_mil.disa.stig_rule_SV-257782r925333_rule" weight="10.0" severity="low">
+      <title>RHEL 9 must enable the hardware random number generator entropy gatherer service.</title>
+      <check>
+        <check-content>Verify that RHEL 9 has enabled the hardware random number generator entropy gatherer service with the following command:
+
+$ systemctl is-active rngd
+
+active
+
+If the &quot;rngd&quot; service is not active, this is a finding.</check-content>
+      </check>
+    </Rule>
+  </Group>
+  <Group id="xccdf_mil.disa.stig_group_V-257783">
+    <title>SRG-OS-000269-GPOS-00103</title>
+    <Rule id="xccdf_mil.disa.stig_rule_SV-257783r925336_rule" weight="10.0" severity="medium">
+      <title>RHEL 9 systemd-journald service must be enabled.</title>
+      <check>
+        <check-content>Verify that &quot;systemd-journald&quot; is active with the following command:
+
+$ systemctl is-active systemd-journald
+
+active
+
+If the systemd-journald service is not active, this is a finding.</check-content>
+      </check>
+    </Rule>
+  </Group>
+  <Group id="xccdf_mil.disa.stig_group_V-257784">
+    <title>SRG-OS-000324-GPOS-00125</title>
+    <Rule id="xccdf_mil.disa.stig_rule_SV-257784r925339_rule" weight="10.0" severity="high">
+      <title>The systemd Ctrl-Alt-Delete burst key sequence in RHEL 9 must be disabled.</title>
+      <check>
+        <check-content>Verify RHEL 9 is configured to not reboot the system when Ctrl-Alt-Delete is pressed seven times within two seconds with the following command:
+
+$ grep -i ctrl /etc/systemd/system.conf
+
+CtrlAltDelBurstAction=none
+
+If the &quot;CtrlAltDelBurstAction&quot; is not set to &quot;none&quot;, commented out, or is missing, this is a finding.</check-content>
+      </check>
+    </Rule>
+  </Group>
+  <Group id="xccdf_mil.disa.stig_group_V-257785">
+    <title>SRG-OS-000324-GPOS-00125</title>
+    <Rule id="xccdf_mil.disa.stig_rule_SV-257785r925342_rule" weight="10.0" severity="high">
+      <title>The x86 Ctrl-Alt-Delete key sequence must be disabled on RHEL 9.</title>
+      <check>
+        <check-content>Verify RHEL 9 is not configured to reboot the system when Ctrl-Alt-Delete is pressed with the following command:
+
+$ sudo systemctl status ctrl-alt-del.target
+
+ctrl-alt-del.target
+Loaded: masked (Reason: Unit ctrl-alt-del.target is masked.)
+Active: inactive (dead)
+
+If the &quot;ctrl-alt-del.target&quot; is loaded and not masked, this is a finding.</check-content>
+      </check>
+    </Rule>
+  </Group>
+  <Group id="xccdf_mil.disa.stig_group_V-257786">
+    <title>SRG-OS-000324-GPOS-00125</title>
+    <Rule id="xccdf_mil.disa.stig_rule_SV-257786r925345_rule" weight="10.0" severity="medium">
+      <title>RHEL 9 debug-shell systemd service must be disabled.</title>
+      <check>
+        <check-content>Verify RHEL 9 is configured to mask the debug-shell systemd service with the following command:
+
+$ sudo systemctl status debug-shell.service
+
+debug-shell.service
+Loaded: masked (Reason: Unit debug-shell.service is masked.)
+Active: inactive (dead)
+
+If the &quot;debug-shell.service&quot; is loaded and not masked, this is a finding.</check-content>
+      </check>
+    </Rule>
+  </Group>
+  <TestResult id="xccdf_mil.navy.nuwcdivnpt.stig-manager_testresult_RHEL_9_TRUNCATED" test-system="cpe:/a:nuwcdivnpt:stig-manager:1.3.13" end-time="2023-11-13T16:43:01.598Z" version="1.0">
+    <title></title>
+    <target>Asset_bbbbbbbbb</target>
+    <target-address></target-address>
+    <target-facts>
+      <fact name="tag:stig-manager@users.noreply.github.com,2020:asset:name" type="string">Asset_bbbbbbbbb</fact>
+    </target-facts>
+    <rule-result idref="xccdf_mil.disa.stig_rule_SV-257777r925318_rule" time="2023-11-13T16:41:49.000Z">
+      <result>pass</result>
+      <check>
+        <check-content>
+          <sm:detail>xxxxxxxxxxxxxxxxxxxxxxxx</sm:detail>
+        </check-content>
+      </check>
+    </rule-result>
+    <rule-result idref="xccdf_mil.disa.stig_rule_SV-257778r925321_rule" time="2023-11-13T16:41:53.000Z">
+      <result>notapplicable</result>
+      <check>
+        <check-content>
+          <sm:detail>xxxxxxxxxxxxxxxxxxxxxxxxxx</sm:detail>
+        </check-content>
+      </check>
+    </rule-result>
+    <rule-result idref="xccdf_mil.disa.stig_rule_SV-257779r925324_rule" time="2023-11-13T16:41:59.000Z">
+      <result>fail</result>
+      <check>
+        <check-content>
+          <sm:detail>yyyyyyyyyyyyyyyyyyyyyyy</sm:detail>
+        </check-content>
+      </check>
+    </rule-result>
+    <rule-result idref="xccdf_mil.disa.stig_rule_SV-257780r925327_rule" time="2023-11-13T16:42:08.000Z">
+      <result>fail</result>
+      <check>
+        <check-content>
+          <sm:detail>yyyyyyyyyyyyyyyyyyyyyyy</sm:detail>
+          <sm:comment>zzzzzzzzzzzzzzzzzzzzzzzzzz</sm:comment>
+        </check-content>
+      </check>
+    </rule-result>
+    <rule-result idref="xccdf_mil.disa.stig_rule_SV-257781r925330_rule" time="2023-11-13T16:42:14.000Z">
+      <result>informational</result>
+      <check>
+        <check-content>
+          <sm:detail>xxxxxxxxxxxxxxxxxxxxxxxxx</sm:detail>
+        </check-content>
+      </check>
+    </rule-result>
+    <rule-result idref="xccdf_mil.disa.stig_rule_SV-257782r925333_rule" time="2023-11-13T16:42:21.000Z">
+      <result>notchecked</result>
+      <check>
+        <check-content>
+          <sm:detail>xxxxxxxxxxxxxxxxxxxxxxxxx</sm:detail>
+        </check-content>
+      </check>
+    </rule-result>
+    <rule-result idref="xccdf_mil.disa.stig_rule_SV-257783r925336_rule">
+      <result>notchecked</result>
+      <check>
+        <check-content></check-content>
+      </check>
+    </rule-result>
+    <rule-result idref="xccdf_mil.disa.stig_rule_SV-257784r925339_rule">
+      <result>notchecked</result>
+      <check>
+        <check-content></check-content>
+      </check>
+    </rule-result>
+    <rule-result idref="xccdf_mil.disa.stig_rule_SV-257785r925342_rule">
+      <result>notchecked</result>
+      <check>
+        <check-content></check-content>
+      </check>
+    </rule-result>
+    <rule-result idref="xccdf_mil.disa.stig_rule_SV-257786r925345_rule">
+      <result>notchecked</result>
+      <check>
+        <check-content></check-content>
+      </check>
+    </rule-result>
+    <score>1.0</score>
+  </TestResult>
+</Benchmark>
