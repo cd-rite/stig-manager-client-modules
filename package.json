@@ -1,6 +1,6 @@
 {
-  "name": "@cd-rite/stig-manager-client-modules-test",
-  "version": "1.4.2",
+  "name": "stig-manager-client-modules-test",
+  "version": "1.4.3",
   "description": "",
   "main": "index.js",
   "type": "module",
