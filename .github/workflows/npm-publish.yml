@@ -16,6 +16,6 @@ jobs:
           # Defaults to the user or organization that owns the workflow file
           scope: '@nuwcdivnpt'          
       - run: npm ci
-      - run: npm publish --access public
+      - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
