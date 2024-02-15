@@ -1,92 +1,87 @@
-/**
- * @typedef {Object} apiCollectionBasic
- * @property {string} collectionId
- * @property {string} name
- */
-/**
- * @typedef {Object} apiCollectionStig
- * @property {string} benchmarkId
- * @property {string} revisionStr
- * @property {string} benchmarkDate
- * @property {boolean} revisionPinned
- * @property {number} ruleCount
- */
-/**
- * @typedef {Object} apiAsset
- * @property {string} assetId
- * @property {string} name
- * @property {string} fqdn
- * @property {string} description
- * @property {string} ip
- * @property {string} mac
- * @property {boolean} noncomputing
- * @property {Object} metadata
- * @property {apiCollectionBasic} collection
- * @property {string[]} labelIds
- * @property {apiCollectionStig[]} stigs
- */
-/**
- * @typedef {Object} apiStig
- * @property {string} benchmarkId
- * @property {string} revisionStr
- * @property {string} version
- * @property {string} release
- * @property {string} benchmarkDate
- * @property {string} status
- * @property {string} statusDate
- * @property {string} ruleCount
- * @property {string[]} collectionIds
- */
+
+const addItemToMapArrayValue = (map, key, item) => {
+  const arr = map.get(key) ?? []
+  arr.push(item)
+  map.set(key, arr)
+}
 
 export default class TaskObject {
+  /** @type {Map<string, ApiAsset>} */
+  #assetNameMap
+
+  /** @type {Map<string, ApiAsset[]} */
+  #cklHostnameMap
+  
+  /** @type {Map<string, string[]} */
+  #benchmarkIdMap
+
+  /** @type {ParseResult[]} */
+  parsedResults
+
+  /** @type {ApiAsset[]} */
+  apiAssets
+
+  /** @type {ApiStig[]} */
+  apiStigs
+
+  /** @type {any[]} */
+  sourceRefs
+
   /**
    * @param {Object} TaskObjectParam
-   * @param {apiAsset[]} TaskObjectParam.apiAssets
-   * @param {apiStig[]} TaskObjectParam.apiStigs
+   * @param {ApiAsset[]} TaskObjectParam.apiAssets
+   * @param {ApiStig[]} TaskObjectParam.apiStigs
+   * @param {ParseResult[]} TaskObjectParam.parsedResults
+   * @param {TaskObjectOptions} TaskObjectParam.options
    */
   constructor({ apiAssets = [], apiStigs = [], parsedResults = [], options = {} }) {
     // An array of results from the parsers
     this.parsedResults = parsedResults
     // An array of assets from the API
     this.apiAssets = apiAssets
-    // Create Maps of the assets by assetName and metadata.cklHostName
-    this.mappedAssetNames = new Map()
-    this.mappedCklHostnames = new Map()
+    // Create Map for the assets, key:apiAsset.name, value: apiAsset
+    this.#assetNameMap = new Map()
+    // Create Map for the cklHostnames, key:apiAsset.metadata.cklHostName, value:apiAsset[]
+    this.#cklHostnameMap = new Map()
+    // An array of any parseResult.sourceRef
+    this.sourceRefs = parsedResults.filter( parseResult => parseResult.sourceRef !== undefined )
+
     for (const apiAsset of apiAssets) {
-      // Update .stigs to an array of benchmarkId strings
+      // Change apiAsset.stigs from an array of stig objects to an array of benchmarkId strings
       apiAsset.stigs = apiAsset.stigs.map(stig => stig.benchmarkId)
-      this.mappedAssetNames.set(apiAsset.name.toLowerCase(), apiAsset)
+      this.#assetNameMap.set(apiAsset.name.toLowerCase(), apiAsset)
       if (apiAsset.metadata?.cklHostName) {
-        const v = this.mappedCklHostnames.get(apiAsset.metadata.cklHostName.toLowerCase())
-        if (v) {
-          v.push(apiAsset)
-        }
-        else {
-          this.mappedCklHostnames.set(apiAsset.metadata.cklHostName.toLowerCase(), [apiAsset])
-        }
+        addItemToMapArrayValue(
+          this.#cklHostnameMap, 
+          apiAsset.metadata.cklHostName.toLowerCase(), 
+          apiAsset
+        )
       }
     }
 
     // A Map() of the installed benchmarkIds return by the API
     // key: benchmarkId, value: array of revisionStr
-    this.mappedStigs = new Map()
-    for (const apiStig of apiStigs) {
-      this.mappedStigs.set(apiStig.benchmarkId, apiStig.revisionStrs)
-    }
+    this.#benchmarkIdMap = new Map(apiStigs.map(stig => [stig.benchmarkId, stig.revisionStrs]))
 
     // An array of accumulated errors
     this.errors = []
 
     // A Map() of assets to be processed by the writer
-    this.taskAssets = this._createTaskAssets(options)
+    this.taskAssets = this.#createTaskAssets(options)
   }
 
-  _findAssetFromParsedTarget(target) {
+  #findAssetFromParsedTarget(target) {
+    // If there's no target.metadata.cklHostName, return the apiAsset (if any) matching the target.name
     if (!target.metadata.cklHostName) {
-      return this.mappedAssetNames.get(target.name.toLowerCase())
+      return this.#assetNameMap.get(target.name.toLowerCase())
     }
-    const matchedByCklHostname = this.mappedCklHostnames.get(target.metadata.cklHostName.toLowerCase())
+
+    // get the array of apiAssets (if any) having the given target.metadata.cklHostName
+    const matchedByCklHostname = this.#cklHostnameMap.get(target.metadata.cklHostName.toLowerCase())
+    // return null if no matches
     if (!matchedByCklHostname) return null
+    
+    // find the first apiAsset that matches all the CKL metadata , or null
     const matchedByAllCklMetadata = matchedByCklHostname.find(
       asset => asset.metadata.cklWebDbInstance?.toLowerCase() === target.metadata.cklWebDbInstance?.toLowerCase()
         && asset.metadata.cklWebDbSite?.toLowerCase() === target.metadata.cklWebDbSite?.toLowerCase())
@@ -94,7 +89,7 @@ export default class TaskObject {
     return matchedByAllCklMetadata
   }
 
-  _createTaskAssets(options) {
+  #createTaskAssets(options) {
     // taskAssets is a Map() keyed by lowercase asset name (or CKL metadata), the value is an object:
     // {
     // knownAsset: false, // does the asset need to be created
@@ -107,6 +102,7 @@ export default class TaskObject {
     // }
 
 
+    /** @type {Map<string, TaskAssetValue} */
     const taskAssets = new Map()
 
     for (const parsedResult of this.parsedResults) {
@@ -119,18 +115,19 @@ export default class TaskObject {
         mapKey = `${tMeta.cklHostName}-${tMeta.cklWebDbSite ?? 'NA'}-${tMeta.cklWebDbInstance ?? 'NA'}`
       }
 
-      // Try to find the asset in the API response
-      const apiAsset = this._findAssetFromParsedTarget(parsedResult.target)
+      // Try to find the asset in apiAssets
+      const apiAsset = this.#findAssetFromParsedTarget(parsedResult.target)
       if (!apiAsset && !options.createObjects) {
-        // Bail if the asset doesn't exist and we won't create it
+        // Bail if the asset doesn't exist and we shouldn't create it
         this.errors.push({
-          file: parsedResult.file,
-          message: `asset does not exist for target`,
-          target: parsedResult.target
+          message: `asset does not exist for target and createObjects is false`,
+          target: parsedResult.target,
+          sourceRef: parsedResult.sourceRef
         })
         continue
       }
       // Try to find the target in our Map()
+      /** @type {TaskAssetValue} */
       let taskAsset = taskAssets.get(mapKey)
 
       if (!taskAsset) {
@@ -142,7 +139,7 @@ export default class TaskObject {
           newAssignments: [],
           checklists: new Map(), // the vetted result checklists
           checklistsIgnored: [], // the ignored checklists
-          reviews: [] // the vetted reviews
+          sourceRefs: [] // the sourceRefs from each parsedResult for this Asset
         }
         if (!apiAsset) {
           // The asset does not exist in the API. Set assetProps from this parseResult.
@@ -161,10 +158,12 @@ export default class TaskObject {
         // Insert the asset into taskAssets
         taskAssets.set(mapKey, taskAsset)
       }
+      // add any parsedResult.sourceRef to this asset's sourceRefs
+      parsedResult.sourceRef !== undefined && taskAsset.sourceRefs.push(parsedResult.sourceRef)
 
       // Helper functions
       const stigIsInstalled = ({ benchmarkId, revisionStr }) => {
-        const revisionStrs = this.mappedStigs.get(benchmarkId)
+        const revisionStrs = this.#benchmarkIdMap.get(benchmarkId)
         if (revisionStrs) {
           return revisionStr && options.strictRevisionCheck ? revisionStrs.includes(revisionStr) : true
         }
@@ -184,31 +183,20 @@ export default class TaskObject {
       }
       const stigIsNewlyAssigned = (benchmarkId) => taskAsset.newAssignments.includes(benchmarkId)
 
-      const addToTaskAssetChecklistMapArray = (taskAsset, checklist) => {
-        let checklistArray = taskAsset.checklists.get(checklist.benchmarkId)
-        if (checklistArray) {
-          checklistArray.push(checklist)
-        }
-        else {
-          taskAsset.checklists.set(checklist.benchmarkId, [checklist])
-        }
-      }
-
       // Vet the checklists in this parseResult 
       for (const checklist of parsedResult.checklists) {
-        checklist.file = parsedResult.file
         if (stigIsInstalled(checklist)) {
           if (stigIsAssigned(checklist)) {
             checklist.newAssignment = stigIsNewlyAssigned(checklist.benchmarkId)
-            addToTaskAssetChecklistMapArray(taskAsset, checklist)
+            addItemToMapArrayValue(taskAsset.checklists, checklist.benchmarkId, checklist)
           }
           else if (options.createObjects) {
             assignStig(checklist.benchmarkId)
             checklist.newAssignment = true
-            addToTaskAssetChecklistMapArray(taskAsset, checklist)
+            addItemToMapArrayValue(taskAsset.checklists, checklist.benchmarkId, checklist)
           }
           else {
-            checklist.ignored = `Not mapped to Asset`
+            checklist.ignored = `Not mapped to Asset and I can't change that`
             taskAsset.checklistsIgnored.push(checklist)
           }
         }
