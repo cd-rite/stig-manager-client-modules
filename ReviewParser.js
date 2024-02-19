@@ -1,31 +1,8 @@
 import {XMLParser} from './fxp.esm.js'
+import decode from './decode.js'
 
-const tagValueProcessor = function () {
-  const text = arguments[1]
-  const entities = {
-    '&amp;': '&',
-    '&lt;': '<',
-    '&gt;': '>',
-    '&quot;': '"',
-    '&#039;': "'"
-  }
-
-  return text.replace(/&([^;]+);/g, function (entity, entityCode) {
-    let match
-
-    if (entityCode in entities) {
-      return entities[entityCode]
-    } 
-    else if (match = entityCode.match(/^#x([\da-fA-F]+)$/)) {
-      return String.fromCharCode(parseInt(match[1], 16))
-    } 
-    else if (match = entityCode.match(/^#(\d+)$/)) {
-      return String.fromCharCode(~~match[1])
-    } 
-    else {
-      return entity
-    }
-  })
+const decodeHTML = function () {
+  return decode(arguments[1])
 }
 
 export function reviewsFromCkl(
@@ -66,7 +43,7 @@ export function reviewsFromCkl(
     parseAttributeValue: false,
     removeNSPrefix: true,
     trimValues: true,
-    tagValueProcessor,
+    tagValueProcessor: decodeHTML,
     commentPropName: "__comment",
     isArray: (name, jpath, isLeafNode, isAttribute) => {
       return name === '__comment' || !isLeafNode
@@ -440,7 +417,7 @@ export function reviewsFromXccdf(
     parseTagValue: false,
     removeNSPrefix: true,
     trimValues: true,
-    tagValueProcessor,
+    tagValueProcessor: decodeHTML,
     commentPropName: "__comment",
     isArray: (name, jpath, isLeafNode, isAttribute) => {
       const arrayElements = [
