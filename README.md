@@ -5,7 +5,10 @@ JavaScript modules for STIG Manager clients. This README and other documentation
 In the root of a project, open a terminal and execute:
 
 ```
-$ npm install git+https://github.com/nuwcdivnpt/stig-manager-client-modules#semver:^1.4.0
+$ npm install @nuwcdivnpt/stig-manager-client-modules
+```
+
+Import the modules as follows:
 ```
 
 Importing all modules into ESM code
@@ -47,10 +50,6 @@ const { reviewsFromCkl } = require('stig-manager-client-modules')
 const result = reviewsFromCkl( ... )
 ```
 
-## 
-
-
-
-
+##
 
 
