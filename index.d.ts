@@ -94,6 +94,7 @@ interface ParsedChecklist {
     benchmarkId: string;
     reviews: ParsedReview[];
     revisionStr: string;
+    errors: string[];
     stats: ParsedChecklistStats;
     sourceRef: any;
 }
