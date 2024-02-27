@@ -73,7 +73,7 @@ interface ParsedReview {
     comment: string;
     detail: string;
     result: ReviewResult;
-    resultEngine: ResultEngine | null
+    resultEngine: ResultEngine | null;
     ruleId: string;
     status: ReviewStatus;
 }
@@ -94,13 +94,13 @@ interface ParsedChecklist {
     benchmarkId: string;
     reviews: ParsedReview[];
     revisionStr: string;
-    errors: string[];
     stats: ParsedChecklistStats;
     sourceRef: any;
 }
 
 interface ParseResult {
     target: ParsedTarget;
+    errors?: string[]; // only used in the ckl parser
     checklists: ParsedChecklist[];
     sourceRef: any;
 }
@@ -138,6 +138,12 @@ interface TaskAssetValue {
     sourceRefs: any[];
 }
 
+interface TaskObjectError { 
+  message: string;
+  target: ParsedTarget;
+  sourceRef: any;
+}
+
 declare class TaskObject {
     constructor (options: TaskObjectParams);
     apiAssets: ApiAsset[];
@@ -145,8 +151,59 @@ declare class TaskObject {
     #assetNameMap: Map<string, ApiAsset>;
     #benchmarkIdMap: Map<string, string[]>;
     #cklHostnameMap: Map<string, ApiAsset[]>;
-    errors: array;
+    errors: TaskObjectError[];
     parsedResults: TaskObjectParseResult[];
     sourceRefs: any[];
     taskAssets: Map<string, TaskAssetValue>;
+}
+
+type AutoStatus = 'null' | 'saved' | 'submitted' | 'accepted';
+type Unreviewed = 'commented' | 'never' | 'always';
+type UnreviewedCommented = 'informational' | 'notchecked';
+type EmptyCommentDetailType = 'replace' | 'ignore' | 'import';
+type RequiredType = 'always' | 'findings' | 'optional';
+type EnabledType = 'always' | 'findings';
+
+interface FieldOptions {
+  enabled: EnabledType;
+  required: RequiredType;
+};
+
+interface FieldSettings {
+  detail: FieldOptions;
+  comment: FieldOptions;
+}
+
+interface ImportOptions {
+  autoStatus: AutoStatus;
+  unreviewed: Unreviewed;
+  unreviewedCommented: UnreviewedCommented;
+  emptyDetail: EmptyCommentDetailType;
+  emptyComment: EmptyCommentDetailType;
+  allowCustom: boolean;
+}
+
+interface ParserParams {
+  data: string;
+  fieldSettings: FieldSettings;
+  allowAccept: boolean;
+  importOptions: ImportOptions;
+  sourceRef: any;
+}
+
+interface ImportOptions {
+  autoStatus: AutoStatus;
+  unreviewed: Unreviewed;
+  unreviewedCommented: UnreviewedCommented;
+  emptyDetail: EmptyCommentDetailType;
+  emptyComment: EmptyCommentDetailType;
+  allowCustom: boolean;
+}
+
+interface ScapBenchmarkMap {
+  [key: string]: string;
+}
+
+interface ParserXccdfParams extends ParserParams{
+  scapBenchmarkMap: ScapBenchmarkMap;
 }
