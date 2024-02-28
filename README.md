@@ -1,3 +1,7 @@
+
+![NPM Version](https://img.shields.io/npm/v/%40nuwcdivnpt%2Fstig-manager-client-modules)
+
+
 # stig-manager-client-modules
 JavaScript modules for STIG Manager clients. This README and other documentation is under construction.
 
