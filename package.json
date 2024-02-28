@@ -1,12 +1,12 @@
 {
   "name": "@nuwcdivnpt/stig-manager-client-modules",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "",
   "main": "index.js",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/NUWCDIVNPT/stig-manager-client-modules.git"
+    "url": "git+https://github.com/NUWCDIVNPT/stig-manager-client-modules.git"
   },
   "scripts": {
     "test": "c8 --reporter=html --reporter=text mocha './test/**/*.test.js'",
