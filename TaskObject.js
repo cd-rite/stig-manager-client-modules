@@ -122,7 +122,7 @@ export default class TaskObject {
 
         /** @type {TaskObjectError} */
         const error = {
-            message: `asset does not exist for target and createObjects is false`,
+            message: `Asset does not exist for target and createObjects is false`,
             target: parsedResult.target,
             sourceRef: parsedResult.sourceRef
         }
@@ -200,7 +200,7 @@ export default class TaskObject {
             addItemToMapArrayValue(taskAsset.checklists, checklist.benchmarkId, checklist)
           }
           else {
-            checklist.ignored = `Not mapped to Asset and I can't change that`
+            checklist.ignored = `STIG not assigned to Asset and createObjects is false.`
             taskAsset.checklistsIgnored.push(checklist)
           }
         }
