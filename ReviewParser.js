@@ -541,7 +541,7 @@ export function reviewsFromXccdf(
   // resultEngine info
   const testSystem = testResult['test-system']
   // SCC injects a CPE WFN bound to a URN
-  const m = testSystem.match(/[cC][pP][eE]:\/[AHOaho]?:(.*)/)
+  const m = testSystem.match(/^cpe:(?:\/|2\.3:)[aho]:(.*)/i)
   let product, version
   if (m?.[1]) {
     ;[, product, version] = m[1].split(':')
@@ -621,7 +621,7 @@ export function reviewsFromXccdf(
 
     let resultEngine
     if (resultEngineCommon) {
-      if (resultEngineCommon.product === 'stig-manager') {
+      if (resultEngineCommon.product === 'stig-manager' || resultEngineCommon.product === 'evaluate-stig') {
         resultEngine = ruleResult.check?.['check-content']?.resultEngine
       }
       else {
@@ -661,6 +661,9 @@ export function reviewsFromXccdf(
     const replacementText = `Result was reported by product "${resultEngine?.product}" version ${resultEngine?.version} at ${resultEngine?.time} using check content "${resultEngine?.checkContent?.location}"`
 
     let detail = ruleResult.check?.['check-content']?.detail
+    if (!detail && ruleResult?.message?.['#text']) {
+      detail = ruleResult.message['#text']
+    }
     if (!detail) {
       switch (importOptions.emptyDetail) {
         case 'ignore':
@@ -674,9 +677,20 @@ export function reviewsFromXccdf(
           break
       }
     }
-    detail = truncateString(detail, maxCommentLength)
 
     let comment = ruleResult.check?.['check-content']?.comment
+    // if no explicit ruleResult comment provided (ie. not stigman-generated xccdf), use override remark as comment (Eval-STIG style xccdf)
+    if (!comment) {
+      comment = ruleResult.check?.['check-content']?.resultEngine?.overrides?.[0]?.remark 
+      //for STIG Viewer compatibility, Eval-STIG concatenates the override remark into detail. Remove it from detail, if override remark is present
+      if (detail && comment && detail.endsWith(comment)) {
+        detail = detail.slice(0, -comment.length).trim()
+      }
+    }
+
+    // if detail is still too long after removing the override remark, truncate it
+    detail = truncateString(detail, maxCommentLength)
+
     if (!comment) {
       switch (importOptions.emptyComment) {
         case 'ignore':
@@ -691,6 +705,15 @@ export function reviewsFromXccdf(
       }
     }
     comment = truncateString(comment, maxCommentLength)
+
+    // Override Remark in Eval-STIG XCCDF preserved in Review Comment, replace Remark with "Evaluate-STIG Answer File", otherwise truncate to 255 characters
+    if (resultEngine?.overrides) {
+      if (resultEngineCommon.product === 'evaluate-stig') {
+        for (const o of resultEngine.overrides) {
+          o.remark = "Evaluate-STIG Answer File"
+        }
+      }
+    }
 
     const review = {
       ruleId,
