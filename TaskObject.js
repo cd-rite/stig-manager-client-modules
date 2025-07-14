@@ -86,9 +86,19 @@ export default class TaskObject {
       asset => asset.metadata.cklWebDbInstance?.toLowerCase() === target.metadata.cklWebDbInstance?.toLowerCase()
         && asset.metadata.cklWebDbSite?.toLowerCase() === target.metadata.cklWebDbSite?.toLowerCase())
     if (!matchedByAllCklMetadata) return null
-    return matchedByAllCklMetadata
+
+     const effectiveName = this.#buildEffectiveName(target)
+    if(this.#assetNameMap.has(effectiveName.toLowerCase())) {
+      return this.#assetNameMap.get(effectiveName.toLowerCase())
+    }
+   
+    return null
   }
 
+  #buildEffectiveName(target) {
+    const effectiveName = `${target.metadata.cklHostName.toLowerCase()}-${target.metadata.cklWebDbSite?.toLowerCase() ?? 'NA'}-${target.metadata.cklWebDbInstance?.toLowerCase() ?? 'NA'}`
+    return effectiveName
+  }
   #createTaskAssets(options) {
     // taskAssets is a Map() keyed by lowercase asset name (or CKL metadata), the value is an object:
     // {
@@ -108,11 +118,14 @@ export default class TaskObject {
     for (const parsedResult of this.parsedResults) {
       // Generate mapping key
       let mapKey, tMeta = parsedResult.target.metadata
+      let assetName
       if (!tMeta.cklHostName) {
         mapKey = parsedResult.target.name.toLowerCase()
+        assetName = parsedResult.target.name
       }
       else {
-        mapKey = `${tMeta.cklHostName}-${tMeta.cklWebDbSite ?? 'NA'}-${tMeta.cklWebDbInstance ?? 'NA'}`
+        assetName = `${tMeta.cklHostName}-${tMeta.cklWebDbSite ?? 'NA'}-${tMeta.cklWebDbInstance ?? 'NA'}`
+        mapKey = assetName.toLowerCase()
       }
 
       // Try to find the asset in apiAssets
@@ -151,8 +164,15 @@ export default class TaskObject {
             taskAsset.assetProps = { ...parsedResult.target, collectionId: options.collectionId, stigs: [] }
           }
           else {
-            taskAsset.assetProps = { ...parsedResult.target, name: mapKey, collectionId: options.collectionId, stigs: [] }
+            taskAsset.assetProps = { ...parsedResult.target, name: assetName, collectionId: options.collectionId, stigs: [] }
           }
+          // insert the asset into the assetNameMap
+          this.#assetNameMap.set(mapKey.toLowerCase(), taskAsset.assetProps)
+          // insert the asset into the cklHostnameMap if it has a cklHostName
+          if (tMeta.cklHostName) {
+            addItemToMapArrayValue(this.#cklHostnameMap, tMeta.cklHostName.toLowerCase(), taskAsset.assetProps)
+          }
+      
         }
         else {
           // The asset exists in the API. Set assetProps from the apiAsset.
@@ -160,7 +180,7 @@ export default class TaskObject {
           taskAsset.assetProps = apiAsset
         }
         // Insert the asset into taskAssets
-        taskAssets.set(mapKey, taskAsset)
+        taskAssets.set(mapKey.toLowerCase(), taskAsset)
       }
       // add any parsedResult.sourceRef to this asset's sourceRefs
       parsedResult.sourceRef !== undefined && taskAsset.sourceRefs.push(parsedResult.sourceRef)
