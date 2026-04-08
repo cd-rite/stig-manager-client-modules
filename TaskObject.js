@@ -99,6 +99,7 @@ export default class TaskObject {
     // {
     // knownAsset: false, // does the asset need to be created
     // assetProps: null, // an Asset object suitable for put/post to the API 
+    // hasUpdatedAssetProps: false, // asset props in checklist differ from existing API asset and should be updated (only relevant if knownAsset is true)
     // hasNewAssignment: false, //  are there new STIG assignments?
     // newAssignments: [], // any new assignments
     // checklists: new Map(), // the vetted result checklists, a Map() keyed by benchmarkId
@@ -146,7 +147,8 @@ export default class TaskObject {
         // This is our first encounter with this assetName, initialize Map() value
         taskAsset = {
           knownAsset: false,
-          assetProps: null, // an object suitable for put/post to the API 
+          assetProps: null, // an object suitable for put/post to the API
+          hasUpdatedAssetProps: false,
           hasNewAssignment: false,
           newAssignments: [],
           checklists: new Map(), // the vetted result checklists
@@ -179,6 +181,33 @@ export default class TaskObject {
       }
       // add any parsedResult.sourceRef to this asset's sourceRefs
       parsedResult.sourceRef !== undefined && taskAsset.sourceRefs.push(parsedResult.sourceRef)
+
+      // For known assets, merge any populated target properties that differ from the API asset
+      if (taskAsset.knownAsset) {
+        const target = parsedResult.target
+        const props = taskAsset.assetProps
+        // String fields: only update if parsed value is populated (truthy = non-null, non-empty)
+        for (const field of ['ip', 'fqdn', 'mac']) {
+          if (target[field] && target[field] !== props[field]) {
+            props[field] = target[field]
+            taskAsset.hasUpdatedAssetProps = true
+          }
+        }
+        // noncomputing: only update when parsed value is true; false is the parser default
+        // for formats like XCCDF that don't specify it, so treat false as "not populated"
+        if (target.noncomputing && target.noncomputing !== props.noncomputing) {
+          props.noncomputing = target.noncomputing
+          taskAsset.hasUpdatedAssetProps = true
+        }
+        // metadata.cklRole and metadata.cklTechArea: only update if parsed value is populated
+        for (const field of ['cklRole', 'cklTechArea']) {
+          if (target.metadata?.[field] && target.metadata[field] !== props.metadata?.[field]) {
+            if (!props.metadata) props.metadata = {}
+            props.metadata[field] = target.metadata[field]
+            taskAsset.hasUpdatedAssetProps = true
+          }
+        }
+      }
 
       // Helper functions
       const stigIsInstalled = ({ benchmarkId, revisionStr }) => {

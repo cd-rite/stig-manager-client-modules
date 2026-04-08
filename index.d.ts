@@ -133,6 +133,7 @@ interface TaskAssetValue {
     checklists: Map<string, TaskAssetChecklist[]>;
     checklistsIgnored: TaskAssetChecklist[];
     hasNewAssignment: boolean;
+    hasUpdatedAssetProps: boolean;
     knownAsset: boolean;
     newAssignments: string[];
     sourceRefs: any[];
@@ -181,6 +182,7 @@ interface ImportOptions {
   emptyDetail: EmptyCommentDetailType;
   emptyComment: EmptyCommentDetailType;
   allowCustom: boolean;
+  updateAssetProps?: boolean;
 }
 
 interface ParserParams {
@@ -189,15 +191,6 @@ interface ParserParams {
   allowAccept: boolean;
   importOptions: ImportOptions;
   sourceRef: any;
-}
-
-interface ImportOptions {
-  autoStatus: AutoStatus;
-  unreviewed: Unreviewed;
-  unreviewedCommented: UnreviewedCommented;
-  emptyDetail: EmptyCommentDetailType;
-  emptyComment: EmptyCommentDetailType;
-  allowCustom: boolean;
 }
 
 interface ScapBenchmarkMap {
